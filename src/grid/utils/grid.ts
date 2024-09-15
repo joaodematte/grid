@@ -23,9 +23,9 @@ export function hasCollisions(currentItem: LayoutItem, layout: Layout): boolean 
 export function getRows(layout: Layout): number {
   let rows = 0;
 
-  layout.forEach((item) => {
+  for (const item of layout) {
     rows = Math.max(rows, item.y + item.h);
-  });
+  }
 
   return rows + 1;
 }
@@ -40,86 +40,68 @@ export function getCollisionSide(item: LayoutItem, collidingItem: LayoutItem): C
   return 'right';
 }
 
-function resolveVerticalCollision(item: LayoutItem, layout: Layout, direction: -1 | 1): Layout {
+function resolveVerticalCollision(item: LayoutItem, layout: Layout, direction: -1 | 1) {
   const itemsInSameRow = layout.filter((i) => i.y === item.y && i.id !== item.id);
   const canMoveWithoutCollision = itemsInSameRow.every(
     (rowItem) => !hasCollisions({ ...rowItem, y: rowItem.y + direction }, layout)
   );
 
   if (canMoveWithoutCollision) {
-    itemsInSameRow.forEach((rowItem) => {
+    for (const rowItem of itemsInSameRow) {
       rowItem.y += direction;
-    });
+    }
 
-    return layout;
+    return;
   }
 
-  layout.forEach((layoutItem) => {
-    if (layoutItem.id === item.id || layoutItem.y < item.y) return;
+  for (const layoutItem of layout) {
+    if (layoutItem.id === item.id || layoutItem.y < item.y) continue;
 
     layoutItem.y += Math.abs(direction);
-  });
-
-  return layout;
+  }
 }
 
-export function resolveBottomCollision(item: LayoutItem, layout: Layout): Layout {
-  return resolveVerticalCollision(item, layout, -1);
+export function resolveBottomCollision(item: LayoutItem, layout: Layout) {
+  resolveVerticalCollision(item, layout, -1);
 }
 
-export function resolveTopCollision(item: LayoutItem, layout: Layout): Layout {
-  return resolveVerticalCollision(item, layout, 1);
+export function resolveTopCollision(item: LayoutItem, layout: Layout) {
+  resolveVerticalCollision(item, layout, 1);
 }
 
-export function resolveHorizontalCollision(item: LayoutItem, collidingItems: Layout, layout: Layout): Layout {
+export function resolveHorizontalCollision(item: LayoutItem, collidingItems: Layout, layout: Layout) {
   for (const collidingItem of collidingItems) {
-    const itemIndex = layout.findIndex((i) => i.id === collidingItem.id);
+    const item = layout.find((i) => i.id === collidingItem.id);
+
+    if (!item) return;
 
     for (let newX = 0; newX <= 4 - collidingItem.w; newX++) {
       const potentialPosition = { ...collidingItem, x: newX };
 
       if (!hasCollisions(potentialPosition, layout)) {
-        layout[itemIndex] = { ...layout[itemIndex], x: newX };
+        item.x = newX;
 
         return layout;
       }
     }
   }
 
-  layout.forEach((layoutItem) => {
+  for (const layoutItem of layout) {
     if (layoutItem.y >= item.y && layoutItem.id !== item.id) {
       layoutItem.y++;
     }
-  });
-
-  return layout;
+  }
 }
 
-export function swapHorizontalItems(
-  item: LayoutItem,
-  itemToSwap: LayoutItem,
-  collisionSide: CollisionSide,
-  layout: Layout
-): Layout {
-  const itemIndex = layout.findIndex((layoutItem) => layoutItem === item);
-  const itemToSwapIndex = layout.findIndex((layoutItem) => layoutItem === itemToSwap);
+export function swapHorizontalItems(item: LayoutItem, itemToSwap: LayoutItem, collisionSide: CollisionSide) {
+  const tempX = item.x;
+  const tempY = item.y;
 
-  if (itemIndex === -1 || itemToSwapIndex === -1) {
-    return [...layout];
-  }
+  item.x = itemToSwap.x;
+  item.y = itemToSwap.y;
 
-  const newLayout = [...layout];
-
-  const tempX = newLayout[itemIndex].x;
-  const tempY = newLayout[itemIndex].y;
-
-  newLayout[itemIndex].x = newLayout[itemToSwapIndex].x;
-  newLayout[itemIndex].y = newLayout[itemToSwapIndex].y;
-
-  newLayout[itemToSwapIndex].x = collisionSide === 'right' ? tempX - 1 : tempX + 1;
-  newLayout[itemToSwapIndex].y = tempY;
-
-  return newLayout;
+  itemToSwap.x = collisionSide === 'right' ? tempX - 1 : tempX + 1;
+  itemToSwap.y = tempY;
 }
 
 export function resolveCollisionsHelper(
@@ -127,24 +109,26 @@ export function resolveCollisionsHelper(
   collidingItems: LayoutItem[],
   collisionSide: CollisionSide,
   layout: Layout
-): Layout {
+) {
   switch (collisionSide) {
     case 'bottom':
-      return resolveBottomCollision(item, layout);
+      resolveBottomCollision(item, layout);
+      break;
     case 'top':
-      return resolveTopCollision(item, layout);
+      resolveTopCollision(item, layout);
+      break;
     case 'left':
     case 'right': {
       const halfSizeItem = layout.filter(
         (i) => i.y === item.y && item.id !== i.id && i.w === 4 / 2 && item.w === 4 / 2
       );
 
-      if (halfSizeItem.length === 1) return swapHorizontalItems(item, halfSizeItem[0], collisionSide, layout);
+      if (halfSizeItem.length === 1) swapHorizontalItems(item, halfSizeItem[0], collisionSide);
 
       return resolveHorizontalCollision(item, collidingItems, layout);
     }
     default:
-      return layout;
+      break;
   }
 }
 
@@ -167,22 +151,21 @@ export function resolveItemPosition(
 }
 
 export function resolveCollisions(layout: Layout, previousLayout: Layout, event: DragMoveEvent): Layout {
-  let newLayout = [...layout];
-  const item = newLayout.find((i) => i.id === event.active.id);
+  const item = layout.find((i) => i.id === event.active.id);
   const itemInPreviousLayout = previousLayout.find((i) => i.id === event.active.id);
 
   // FIX pode ser que de erro quando arrastar o campo da sidebar (itemInPreviousLayout) <- ainda n existe
-  if (!item || !itemInPreviousLayout) return newLayout;
+  if (!item || !itemInPreviousLayout) return layout;
 
-  const collisions = getCollisions(item, newLayout);
+  const collisions = getCollisions(item, layout);
 
-  if (collisions.length === 0) return newLayout;
+  if (collisions.length === 0) return layout;
 
   const collisionSide = getCollisionSide(itemInPreviousLayout, item);
 
-  newLayout = resolveCollisionsHelper(item, collisions, collisionSide, newLayout);
+  resolveCollisionsHelper(item, collisions, collisionSide, layout);
 
-  return newLayout;
+  return layout;
 }
 
 export function getGhostItems(cols: number, rows: number): { id: string; x: number; y: number }[] {

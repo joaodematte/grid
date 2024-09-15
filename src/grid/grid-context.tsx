@@ -1,4 +1,4 @@
-import { createContext, memo, useCallback, useMemo, useState } from 'react';
+import { createContext, memo, useState } from 'react';
 
 import { Layout } from './types';
 
@@ -33,40 +33,35 @@ export const GridContextContext = createContext<GridContextProps | null>(null);
 export const GridContext = memo(({ children, initialLayout, cols, colWidth, rowHeight }: GridContextProviderProps) => {
   const [layout, setLayout] = useState<Layout>(initialLayout);
 
-  const updateLayoutItem = useCallback(
-    (id: string, props: { x: number; y: number; w: number; h: number }) => {
-      const index = layout.findIndex((i) => i.id === id);
+  const updateLayoutItem = (id: string, props: { x: number; y: number; w: number; h: number }) => {
+    const index = layout.findIndex((i) => i.id === id);
 
-      if (index === -1) return;
+    if (index === -1) return;
 
-      setLayout((prevLayout) => prevLayout.map((it, i) => (i === index ? { ...it, ...props } : it)));
-    },
-    [layout]
+    setLayout((prevLayout) => prevLayout.map((it, i) => (i === index ? { ...it, ...props } : it)));
+  };
+
+  const deleteLayoutItem = (id: string) => {
+    const index = layout.findIndex((i) => i.id === id);
+
+    if (index === -1) return;
+
+    setLayout((prevLayout) => prevLayout.filter((item) => item.id !== id));
+  };
+
+  return (
+    <GridContextContext.Provider
+      value={{
+        layout,
+        rowHeight,
+        colWidth,
+        cols,
+        updateLayoutItem,
+        deleteLayoutItem,
+        setLayout
+      }}
+    >
+      {children}
+    </GridContextContext.Provider>
   );
-
-  const deleteLayoutItem = useCallback(
-    (id: string) => {
-      const index = layout.findIndex((i) => i.id === id);
-
-      if (index === -1) return;
-
-      setLayout((prevLayout) => prevLayout.filter((item) => item.id !== id));
-    },
-    [layout]
-  );
-
-  const gridContextValues = useMemo(
-    () => ({
-      layout,
-      rowHeight,
-      colWidth,
-      cols,
-      updateLayoutItem,
-      deleteLayoutItem,
-      setLayout
-    }),
-    [layout, rowHeight, colWidth, cols, updateLayoutItem, deleteLayoutItem]
-  );
-
-  return <GridContextContext.Provider value={gridContextValues}>{children}</GridContextContext.Provider>;
 });

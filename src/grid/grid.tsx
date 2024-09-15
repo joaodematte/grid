@@ -8,7 +8,7 @@ import {
   useSensor,
   useSensors
 } from '@dnd-kit/core';
-import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useLayoutEffect, useRef, useState } from 'react';
 
 import { GhostItem } from './ghost-item';
 import { GridItem, GridItemOverlay } from './grid-item';
@@ -24,62 +24,50 @@ export const Grid = memo(() => {
 
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const rows = useMemo(() => getRows(layout), [layout]);
+  const rows = getRows(layout);
 
-  const ghostItems = useMemo(() => getGhostItems(cols, rows), [cols, rows]);
+  const ghostItems = getGhostItems(cols, rows);
 
-  // const lastLayoutId = useMemo(() => layout.reduce((max, item) => Math.max(max, parseInt(item.id, 10)), -1), [layout]);
+  // const lastLayoutId = layout.reduce((max, item) => Math.max(max, parseInt(item.id, 10)), -1);
 
-  // const nextLayoutId = useMemo(() => (lastLayoutId + 1).toString(), [lastLayoutId]);
+  // const nextLayoutId = (lastLayoutId + 1).toString();
 
-  // const generateLayoutItem = useCallback((id: string, w: number) => ({ id, x: -1, y: -1, w, h: 1 }), []);
+  // const generateLayoutItem = (id: string, w: number) => ({ id, x: -1, y: -1, w, h: 1 });
 
-  const updateLayout = useCallback(
-    (updatedLayout: Layout, event: DragMoveEvent) => {
-      if (JSON.stringify(updatedLayout) !== JSON.stringify(layout)) {
-        const updatedLayoutWithoutCollisions = resolveCollisions(updatedLayout, layout, event);
+  const updateLayout = (updatedLayout: Layout, event: DragMoveEvent) => {
+    if (JSON.stringify(updatedLayout) !== JSON.stringify(layout)) {
+      const updatedLayoutWithoutCollisions = resolveCollisions([...updatedLayout], layout, event);
 
-        setLayout(updatedLayoutWithoutCollisions);
-      }
-    },
-    [layout, setLayout]
-  );
+      setLayout(updatedLayoutWithoutCollisions);
+    }
+  };
 
-  const positionItem = useCallback(
-    (event: DragMoveEvent) => {
-      const { pos, collidingId } = resolveItemPosition(event, lastCollisionId);
+  const positionItem = (event: DragMoveEvent) => {
+    const { pos, collidingId } = resolveItemPosition(event, lastCollisionId);
 
-      if (pos.x === -1 || pos.y === -1) return;
+    if (pos.x === -1 || pos.y === -1) return;
 
-      const id = event.active.id;
-      const updatedLayout = layout.map((i) => (i.id === id ? { ...i, x: pos.x, y: pos.y } : i));
+    const id = event.active.id;
+    const updatedLayout = layout.map((i) => (i.id === id ? { ...i, x: pos.x, y: pos.y } : i));
 
-      if (collidingId) setLastCollisionId(collidingId);
+    if (collidingId) setLastCollisionId(collidingId);
 
-      updateLayout(updatedLayout, event);
-    },
-    [lastCollisionId, layout, updateLayout]
-  );
+    updateLayout(updatedLayout, event);
+  };
 
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const toBeActive = layout.find((item) => item.id === event.active.id);
+  const handleDragStart = (event: DragStartEvent) => {
+    const toBeActive = layout.find((item) => item.id === event.active.id);
 
-      if (toBeActive) setActiveItem(toBeActive);
-    },
-    [layout]
-  );
+    if (toBeActive) setActiveItem(toBeActive);
+  };
 
-  const handleDragEnd = useCallback(() => {
+  const handleDragEnd = () => {
     setActiveItem(null);
-  }, []);
+  };
 
-  const handleOnDragMove = useCallback(
-    (event: DragMoveEvent) => {
-      positionItem(event);
-    },
-    [positionItem]
-  );
+  const handleOnDragMove = (event: DragMoveEvent) => {
+    positionItem(event);
+  };
 
   const sensors = useSensors(
     useSensor(MouseSensor),
