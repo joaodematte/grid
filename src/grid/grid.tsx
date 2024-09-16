@@ -1,6 +1,7 @@
 import { DragMoveEvent, DragOverlay, DragStartEvent, useDndMonitor } from '@dnd-kit/core';
 import { useLayoutEffect, useRef, useState } from 'react';
 
+import { useTabContext } from '../tabs/hooks/use-tab-context';
 import { GhostItem } from './ghost-item';
 import { GridItem, GridItemOverlay } from './grid-item';
 import { useGridContext } from './hooks';
@@ -8,7 +9,8 @@ import { Layout, LayoutItem } from './types';
 import { getGhostItems, getInitialSidebarItemPosition, getRows, resolveCollisions, resolveItemPosition } from './utils';
 
 export const Grid = () => {
-  const { layout, cols, colWidth, rowHeight, setLayout, getNextLayoutId } = useGridContext();
+  const { layout, cols, colWidth, rowHeight, getNextLayoutId, updateLayout } = useGridContext();
+  const { activeTab } = useTabContext();
 
   const [activeItem, setActiveItem] = useState<LayoutItem | null>(null);
   const [lastCollisionId, setLastCollisionId] = useState<string | null>(null);
@@ -22,10 +24,10 @@ export const Grid = () => {
 
   const generateLayoutItem = (id: string, w: number) => ({ id, w, h: 1 });
 
-  const updateLayout = (updatedLayout: Layout, event: DragMoveEvent) => {
+  const updateLayoutTemp = (updatedLayout: Layout, event: DragMoveEvent) => {
     const updatedLayoutWithoutCollisions = resolveCollisions([...updatedLayout], layout, event);
 
-    setLayout(updatedLayoutWithoutCollisions);
+    updateLayout(activeTab, updatedLayoutWithoutCollisions);
   };
 
   const positionItem = (event: DragMoveEvent) => {
@@ -50,7 +52,7 @@ export const Grid = () => {
       return item;
     });
 
-    updateLayout(updatedLayout, event);
+    updateLayoutTemp(updatedLayout, event);
   };
 
   const handleOnDragStart = (event: DragStartEvent) => {
@@ -79,7 +81,7 @@ export const Grid = () => {
     setLastCollisionId(null);
 
     if (shouldCreate) {
-      setLayout((prev) => [...prev, tempItem]);
+      updateLayout(activeTab, [...layout, tempItem]);
 
       isLastMoveFromSidebar.current = true;
     }

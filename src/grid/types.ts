@@ -48,3 +48,5 @@ export interface ShouldCreate {
   x: number;
   y: number;
 }
+
+export type GridData = Record<number, Layout>;

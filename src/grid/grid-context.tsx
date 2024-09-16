@@ -1,13 +1,19 @@
-import { createContext, useState } from 'react';
+import { createContext } from 'react';
 
-import { Layout } from './types';
+import { Layout, LayoutItem } from './types';
 
 interface GridContextProviderProps {
   children: React.ReactNode | React.ReactNode[];
-  initialLayout: Layout;
   cols: number;
   colWidth: number;
   rowHeight: number;
+  layout: Layout;
+  addItem: (tabId: number, item: LayoutItem) => void;
+  removeItem: (tabId: number, itemId: string) => void;
+  updateItem: (tabId: number, item: LayoutItem) => void;
+  addTab: (tabId: number) => void;
+  removeTab: (tabId: number) => void;
+  updateLayout: (tabId: number, layout: Layout) => void;
 }
 
 interface GridContextProps {
@@ -15,41 +21,18 @@ interface GridContextProps {
   colWidth: number;
   rowHeight: number;
   layout: Layout;
-  setLayout: React.Dispatch<React.SetStateAction<Layout>>;
-  updateLayoutItem: (
-    id: string,
-    props: {
-      x: number;
-      y: number;
-      w: number;
-      h: number;
-    }
-  ) => void;
-  deleteLayoutItem: (id: string) => void;
   getNextLayoutId: () => string;
+  addItem: (tabId: number, item: LayoutItem) => void;
+  removeItem: (tabId: number, itemId: string) => void;
+  updateItem: (tabId: number, item: LayoutItem) => void;
+  addTab: (tabId: number) => void;
+  removeTab: (tabId: number) => void;
+  updateLayout: (tabId: number, layout: Layout) => void;
 }
 
 export const GridContextContext = createContext<GridContextProps | null>(null);
 
-export const GridContext = ({ children, initialLayout, cols, colWidth, rowHeight }: GridContextProviderProps) => {
-  const [layout, setLayout] = useState<Layout>(initialLayout);
-
-  const updateLayoutItem = (id: string, props: { x: number; y: number; w: number; h: number }) => {
-    const index = layout.findIndex((i) => i.id === id);
-
-    if (index === -1) return;
-
-    setLayout((prevLayout) => prevLayout.map((it, i) => (i === index ? { ...it, ...props } : it)));
-  };
-
-  const deleteLayoutItem = (id: string) => {
-    const index = layout.findIndex((i) => i.id === id);
-
-    if (index === -1) return;
-
-    setLayout((prevLayout) => prevLayout.filter((item) => item.id !== id));
-  };
-
+export const GridContext = ({ children, layout, cols, colWidth, rowHeight, ...actions }: GridContextProviderProps) => {
   const getNextLayoutId = () => {
     return (layout.reduce((max, item) => Math.max(max, parseInt(item.id, 10)), -1) + 1).toString();
   };
@@ -61,10 +44,8 @@ export const GridContext = ({ children, initialLayout, cols, colWidth, rowHeight
         rowHeight,
         colWidth,
         cols,
-        updateLayoutItem,
-        deleteLayoutItem,
-        setLayout,
-        getNextLayoutId
+        getNextLayoutId,
+        ...actions
       }}
     >
       {children}
