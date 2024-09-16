@@ -1,10 +1,9 @@
 import { useDroppable } from '@dnd-kit/core';
-import { memo } from 'react';
 
 import { useGridContext } from './hooks';
 import { GhostItemProps } from './types';
 
-export const GhostItem = memo(({ id, x, y }: GhostItemProps) => {
+export const GhostItem = ({ id, x, y }: GhostItemProps) => {
   const ghostId = `${id}-ghost`;
 
   const { colWidth, rowHeight } = useGridContext();
@@ -39,4 +38,4 @@ export const GhostItem = memo(({ id, x, y }: GhostItemProps) => {
       />
     </div>
   );
-});
+};

@@ -1,6 +1,6 @@
 import { DragEndEvent, DragMoveEvent } from '@dnd-kit/core';
 
-import { CollisionSide, ItemPosition, ItemSize, Layout, LayoutItem } from '../types';
+import { CollisionSide, ItemPosition, ItemSize, Layout, LayoutItem, ShouldCreate } from '../types';
 
 function isItemColliding(item: LayoutItem, otherItem: LayoutItem): boolean {
   return (
@@ -151,10 +151,13 @@ export function resolveItemPosition(
 }
 
 export function resolveCollisions(layout: Layout, previousLayout: Layout, event: DragMoveEvent): Layout {
-  const item = layout.find((i) => i.id === event.active.id);
-  const itemInPreviousLayout = previousLayout.find((i) => i.id === event.active.id);
+  const isItemFromSidebar = event.active.data.current?.from === 'sidebar';
 
-  // FIX pode ser que de erro quando arrastar o campo da sidebar (itemInPreviousLayout) <- ainda n existe
+  const itemInPreviousLayout = isItemFromSidebar
+    ? previousLayout[previousLayout.length - 1]
+    : previousLayout.find((i) => i.id === event.active.id);
+  const item = isItemFromSidebar ? layout[layout.length - 1] : layout.find((i) => i.id === event.active.id);
+
   if (!item || !itemInPreviousLayout) return layout;
 
   const collisions = getCollisions(item, layout);
@@ -166,6 +169,35 @@ export function resolveCollisions(layout: Layout, previousLayout: Layout, event:
   resolveCollisionsHelper(item, collisions, collisionSide, layout);
 
   return layout;
+}
+
+export function getInitialSidebarItemPosition(event: DragMoveEvent): ShouldCreate {
+  const NO_CREATE: ShouldCreate = { shouldCreate: false, x: -1, y: -1 } as const;
+
+  const collisions = event.collisions;
+
+  if (!collisions || collisions.length === 0) {
+    return NO_CREATE;
+  }
+
+  const firstCollision = collisions[0];
+  const collisionData = firstCollision.data;
+
+  if (!collisionData || collisionData.value >= 50) {
+    return NO_CREATE;
+  }
+
+  const position = collisionData.droppableContainer.data.current;
+  const activeData = event.active.data.current;
+
+  if (!activeData || exceedsBy({ x: position.x, w: activeData.w }) > 0) {
+    return NO_CREATE;
+  }
+
+  return {
+    shouldCreate: true,
+    ...position
+  };
 }
 
 export function getGhostItems(cols: number, rows: number): { id: string; x: number; y: number }[] {

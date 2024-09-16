@@ -1,4 +1,7 @@
-import { Grid, GridContext } from './grid';
+import { DndContext } from '@dnd-kit/core';
+
+import { closestLeftCorner, Grid, GridContext } from './grid';
+import { Sidebar } from './sidebar/sidebar';
 
 const initialLayout = [
   { id: '0', x: 0, y: 0, w: 3, h: 1 },
@@ -9,8 +12,15 @@ const initialLayout = [
 
 export default function App() {
   return (
-    <GridContext initialLayout={initialLayout} cols={4} colWidth={200} rowHeight={50}>
-      <Grid />
-    </GridContext>
+    <DndContext collisionDetection={closestLeftCorner}>
+      <GridContext initialLayout={initialLayout} cols={4} colWidth={200} rowHeight={50}>
+        <div className="flex h-full w-full">
+          <Sidebar />
+          <div className="mt-24 flex w-full justify-center">
+            <Grid />
+          </div>
+        </div>
+      </GridContext>
+    </DndContext>
   );
 }

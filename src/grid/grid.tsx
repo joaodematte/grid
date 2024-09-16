@@ -1,45 +1,31 @@
-import {
-  DndContext,
-  DragMoveEvent,
-  DragOverlay,
-  DragStartEvent,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors
-} from '@dnd-kit/core';
-import { memo, useLayoutEffect, useRef, useState } from 'react';
+import { DragMoveEvent, DragOverlay, DragStartEvent, useDndMonitor } from '@dnd-kit/core';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 import { GhostItem } from './ghost-item';
 import { GridItem, GridItemOverlay } from './grid-item';
 import { useGridContext } from './hooks';
 import { Layout, LayoutItem } from './types';
-import { closestLeftCorner, getGhostItems, getRows, resolveCollisions, resolveItemPosition } from './utils';
+import { getGhostItems, getInitialSidebarItemPosition, getRows, resolveCollisions, resolveItemPosition } from './utils';
 
-export const Grid = memo(() => {
-  const { layout, cols, colWidth, rowHeight, setLayout } = useGridContext();
+export const Grid = () => {
+  const { layout, cols, colWidth, rowHeight, setLayout, getNextLayoutId } = useGridContext();
 
   const [activeItem, setActiveItem] = useState<LayoutItem | null>(null);
   const [lastCollisionId, setLastCollisionId] = useState<string | null>(null);
 
   const gridRef = useRef<HTMLDivElement>(null);
+  const isLastMoveFromSidebar = useRef<boolean>(false);
 
   const rows = getRows(layout);
 
   const ghostItems = getGhostItems(cols, rows);
 
-  // const lastLayoutId = layout.reduce((max, item) => Math.max(max, parseInt(item.id, 10)), -1);
-
-  // const nextLayoutId = (lastLayoutId + 1).toString();
-
-  // const generateLayoutItem = (id: string, w: number) => ({ id, x: -1, y: -1, w, h: 1 });
+  const generateLayoutItem = (id: string, w: number) => ({ id, w, h: 1 });
 
   const updateLayout = (updatedLayout: Layout, event: DragMoveEvent) => {
-    if (JSON.stringify(updatedLayout) !== JSON.stringify(layout)) {
-      const updatedLayoutWithoutCollisions = resolveCollisions([...updatedLayout], layout, event);
+    const updatedLayoutWithoutCollisions = resolveCollisions([...updatedLayout], layout, event);
 
-      setLayout(updatedLayoutWithoutCollisions);
-    }
+    setLayout(updatedLayoutWithoutCollisions);
   };
 
   const positionItem = (event: DragMoveEvent) => {
@@ -47,32 +33,69 @@ export const Grid = memo(() => {
 
     if (pos.x === -1 || pos.y === -1) return;
 
-    const id = event.active.id;
-    const updatedLayout = layout.map((i) => (i.id === id ? { ...i, x: pos.x, y: pos.y } : i));
-
     if (collidingId) setLastCollisionId(collidingId);
+
+    const isFromSidebar = event.active.data.current?.from === 'sidebar';
+    const activeId = event.active.id;
+
+    const updatedLayout = layout.map((item) => {
+      if (isFromSidebar && item === layout[layout.length - 1]) {
+        return { ...item, x: pos.x, y: pos.y };
+      }
+
+      if (!isFromSidebar && item.id === activeId) {
+        return { ...item, x: pos.x, y: pos.y };
+      }
+
+      return item;
+    });
 
     updateLayout(updatedLayout, event);
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleOnDragStart = (event: DragStartEvent) => {
     const toBeActive = layout.find((item) => item.id === event.active.id);
 
     if (toBeActive) setActiveItem(toBeActive);
   };
 
-  const handleDragEnd = () => {
+  const handleOnDragEnd = () => {
     setActiveItem(null);
+
+    isLastMoveFromSidebar.current = false;
+  };
+
+  const handleSidebarDrag = (event: DragMoveEvent) => {
+    const { shouldCreate, x, y } = getInitialSidebarItemPosition(event);
+    const width = event.active.data.current?.w;
+
+    const tempItem: LayoutItem = {
+      ...generateLayoutItem(getNextLayoutId(), width),
+      x,
+      y
+    };
+
+    setActiveItem(tempItem);
+    setLastCollisionId(null);
+
+    if (shouldCreate) {
+      setLayout((prev) => [...prev, tempItem]);
+
+      isLastMoveFromSidebar.current = true;
+    }
   };
 
   const handleOnDragMove = (event: DragMoveEvent) => {
+    const isFromSidebar = event.active.data.current?.from === 'sidebar';
+
+    if (isFromSidebar && !isLastMoveFromSidebar.current) {
+      handleSidebarDrag(event);
+
+      return;
+    }
+
     positionItem(event);
   };
-
-  const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
-  );
 
   useLayoutEffect(() => {
     if (!gridRef.current) return;
@@ -81,29 +104,25 @@ export const Grid = memo(() => {
     gridRef.current.style.height = `${rowHeight * rows}px`;
   }, [gridRef, rows, cols, colWidth, rowHeight]);
 
+  useDndMonitor({
+    onDragStart: handleOnDragStart,
+    onDragEnd: handleOnDragEnd,
+    onDragMove: handleOnDragMove
+  });
+
   return (
-    <div className="flex h-full w-full">
-      <DndContext
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragMove={handleOnDragMove}
-        collisionDetection={closestLeftCorner}
-        sensors={sensors}
-      >
-        <div className="grid h-full w-full place-items-center">
-          <div ref={gridRef} className="relative">
-            {ghostItems.map((ghostItem) => (
-              <GhostItem key={`${ghostItem.id}-ghost`} {...ghostItem} />
-            ))}
-            {layout.map((item) => (
-              <GridItem key={item.id} {...item} />
-            ))}
-          </div>
-        </div>
-        <DragOverlay dropAnimation={{ duration: 0 }}>
-          {activeItem ? <GridItemOverlay {...activeItem} /> : null}
-        </DragOverlay>
-      </DndContext>
+    <div ref={gridRef} className="relative">
+      {ghostItems.map((ghostItem) => (
+        <GhostItem key={`${ghostItem.id}-ghost`} {...ghostItem} />
+      ))}
+
+      {layout.map((item) => (
+        <GridItem key={item.id} {...item} />
+      ))}
+
+      <DragOverlay dropAnimation={{ duration: 0 }}>
+        {activeItem ? <GridItemOverlay {...activeItem} /> : null}
+      </DragOverlay>
     </div>
   );
-});
+};

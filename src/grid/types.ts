@@ -42,3 +42,9 @@ export interface GhostItemProps {
   x: number;
   y: number;
 }
+
+export interface ShouldCreate {
+  shouldCreate: boolean;
+  x: number;
+  y: number;
+}

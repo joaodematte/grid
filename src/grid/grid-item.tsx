@@ -1,11 +1,11 @@
 import { useDndContext, useDraggable } from '@dnd-kit/core';
 import clsx from 'clsx';
-import { CSSProperties, memo } from 'react';
+import { CSSProperties } from 'react';
 
 import { useGridContext } from './hooks';
 import { LayoutItem as GridItemProps } from './types';
 
-export const GridItem = memo(({ id, x, y, w, h }: GridItemProps) => {
+export const GridItem = ({ id, x, y, w, h }: GridItemProps) => {
   const { colWidth, rowHeight } = useGridContext();
 
   const { active } = useDndContext();
@@ -44,7 +44,7 @@ export const GridItem = memo(({ id, x, y, w, h }: GridItemProps) => {
     <div id={id} style={style} className={`${classes} absolute font-bold`}>
       <div
         ref={draggableRef}
-        className="grid h-full w-full cursor-grab place-items-center"
+        className="grid h-full w-full cursor-grab select-none place-items-center"
         {...attributes}
         {...listeners}
       >
@@ -52,9 +52,9 @@ export const GridItem = memo(({ id, x, y, w, h }: GridItemProps) => {
       </div>
     </div>
   );
-});
+};
 
-export const GridItemOverlay = memo(({ id, w, h }: GridItemProps) => {
+export const GridItemOverlay = ({ id, w, h }: GridItemProps) => {
   const { colWidth, rowHeight } = useGridContext();
 
   const style: CSSProperties = {
@@ -63,8 +63,11 @@ export const GridItemOverlay = memo(({ id, w, h }: GridItemProps) => {
   };
 
   return (
-    <div className="border-1 grid cursor-grabbing place-items-center border bg-zinc-100 font-bold" style={style}>
+    <div
+      className="border-1 grid cursor-grabbing select-none place-items-center border bg-zinc-100 font-bold"
+      style={style}
+    >
       {id}
     </div>
   );
-});
+};

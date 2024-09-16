@@ -1,4 +1,4 @@
-import { createContext, memo, useState } from 'react';
+import { createContext, useState } from 'react';
 
 import { Layout } from './types';
 
@@ -26,11 +26,12 @@ interface GridContextProps {
     }
   ) => void;
   deleteLayoutItem: (id: string) => void;
+  getNextLayoutId: () => string;
 }
 
 export const GridContextContext = createContext<GridContextProps | null>(null);
 
-export const GridContext = memo(({ children, initialLayout, cols, colWidth, rowHeight }: GridContextProviderProps) => {
+export const GridContext = ({ children, initialLayout, cols, colWidth, rowHeight }: GridContextProviderProps) => {
   const [layout, setLayout] = useState<Layout>(initialLayout);
 
   const updateLayoutItem = (id: string, props: { x: number; y: number; w: number; h: number }) => {
@@ -49,6 +50,10 @@ export const GridContext = memo(({ children, initialLayout, cols, colWidth, rowH
     setLayout((prevLayout) => prevLayout.filter((item) => item.id !== id));
   };
 
+  const getNextLayoutId = () => {
+    return (layout.reduce((max, item) => Math.max(max, parseInt(item.id, 10)), -1) + 1).toString();
+  };
+
   return (
     <GridContextContext.Provider
       value={{
@@ -58,10 +63,11 @@ export const GridContext = memo(({ children, initialLayout, cols, colWidth, rowH
         cols,
         updateLayoutItem,
         deleteLayoutItem,
-        setLayout
+        setLayout,
+        getNextLayoutId
       }}
     >
       {children}
     </GridContextContext.Provider>
   );
-});
+};
