@@ -24,7 +24,6 @@ export const Grid = () => {
 
   const gridRef = useRef<HTMLDivElement>(null);
   const isLastMoveFromSidebar = useRef<boolean>(false);
-  const tempItemRef = useRef<LayoutItem>(null);
 
   const rows = getRows(layout);
 
@@ -73,14 +72,13 @@ export const Grid = () => {
     setActiveItem(null);
 
     isLastMoveFromSidebar.current = false;
-    tempItemRef.current = null;
   };
 
   const handleShouldCreateItem = (event: DragMoveEvent) => {
     const { shouldCreate, x, y } = createItemPosition(event);
     const width = event.active.data.current?.w;
 
-    if (!tempItemRef.current) {
+    if (!activeItem) {
       const tempItem: LayoutItem = {
         ...generateLayoutItem(generateId(), width),
         x,
@@ -88,16 +86,12 @@ export const Grid = () => {
       };
 
       setActiveItem(tempItem);
-      tempItemRef.current = tempItem;
+    } else if (shouldCreate) {
+      updateLayout(activeTab, [...layout, activeItem]);
+      isLastMoveFromSidebar.current = true;
     }
 
     setLastCollisionId(null);
-
-    if (shouldCreate) {
-      updateLayout(activeTab, [...layout, tempItemRef.current]);
-
-      isLastMoveFromSidebar.current = true;
-    }
   };
 
   const handleMoveBetweenTabs = (event: DragMoveEvent) => {
