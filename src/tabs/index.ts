@@ -1,1 +1,3 @@
-export * from './tabs-context';
+export * from './context';
+export * from './tabs';
+export * from './hooks';

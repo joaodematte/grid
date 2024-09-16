@@ -1,9 +1,9 @@
 import { useContext } from 'react';
 
-import { TabContext } from '../tabs-context';
+import { TabsContext } from '../context/tabs-context';
 
-export function useTabContext() {
-  const context = useContext(TabContext);
+export function useTabsContext() {
+  const context = useContext(TabsContext);
 
   if (!context) {
     throw new Error('useTabContext must be used within a TabProvider');

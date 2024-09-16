@@ -1,6 +1,6 @@
 import { DragEndEvent, DragMoveEvent } from '@dnd-kit/core';
 
-import { CollisionSide, ItemPosition, ItemSize, Layout, LayoutItem, ShouldCreate } from '../types';
+import { CollisionSide, ItemPosition, Layout, LayoutItem, ShouldCreate } from '../types';
 
 function isItemColliding(item: LayoutItem, otherItem: LayoutItem): boolean {
   return (
@@ -43,7 +43,7 @@ export function getCollisionSide(item: LayoutItem, collidingItem: LayoutItem): C
 function resolveVerticalCollision(item: LayoutItem, layout: Layout, direction: -1 | 1) {
   const itemsInSameRow = layout.filter((i) => i.y === item.y && i.id !== item.id);
   const canMoveWithoutCollision = itemsInSameRow.every(
-    (rowItem) => !hasCollisions({ ...rowItem, y: rowItem.y + direction }, layout)
+    (rowItem) => !hasCollisions({ ...rowItem, y: rowItem.y + direction }, layout) && rowItem.y + direction >= 0
   );
 
   if (canMoveWithoutCollision) {
@@ -133,19 +133,22 @@ export function resolveCollisionsHelper(
 }
 
 export function resolveItemPosition(
+  activeItem: LayoutItem | null,
   event: DragEndEvent,
   lastCollisionId: string | null
 ): { pos: ItemPosition; collidingId: string | null } {
+  const NO_POSITION = { pos: { x: -1, y: -1 }, collidingId: lastCollisionId };
+
   const { collisions } = event;
 
-  if (!collisions || collisions.length === 0 || !collisions[0].data)
-    return { pos: { x: -1, y: -1 }, collidingId: lastCollisionId };
+  if (!collisions || collisions.length === 0 || !collisions[0].data || !activeItem) return NO_POSITION;
 
-  const { w } = event.active.data?.current as ItemSize;
+  const { w } = activeItem;
   const { x, y } = collisions[0].data.droppableContainer.data.current as ItemPosition;
 
-  if (exceedsBy({ x, w }) > 0 || collisions[0].id === lastCollisionId)
-    return { pos: { x: -1, y: -1 }, collidingId: lastCollisionId };
+  if (x === undefined || y === undefined) return NO_POSITION;
+
+  if (exceedsBy({ x, w }) > 0 || collisions[0].id === lastCollisionId) return NO_POSITION;
 
   return { pos: { x, y }, collidingId: collisions[0].id.toString() };
 }
@@ -171,7 +174,7 @@ export function resolveCollisions(layout: Layout, previousLayout: Layout, event:
   return layout;
 }
 
-export function getInitialSidebarItemPosition(event: DragMoveEvent): ShouldCreate {
+export function createItemPosition(event: DragMoveEvent): ShouldCreate {
   const NO_CREATE: ShouldCreate = { shouldCreate: false, x: -1, y: -1 } as const;
 
   const collisions = event.collisions;

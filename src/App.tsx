@@ -1,28 +1,27 @@
 import { DndContext } from '@dnd-kit/core';
 import { useReducer, useState } from 'react';
 
-import { closestLeftCorner, Grid, GridContext, GridData, Layout, LayoutItem } from './grid';
-import { gridReducer } from './grid/utils/reducer';
-import { Sidebar } from './sidebar/sidebar';
-import { TabContextProvider } from './tabs';
+import { closestLeftCorner, Grid, GridContext, GridData, gridReducer, Layout, LayoutItem } from './grid';
+import { Sidebar } from './sidebar';
+import { Tabs, TabsContextProvider } from './tabs';
 
-const initialState: GridData = {
+const initialData: GridData = {
   0: [
-    { id: '0', x: 0, y: 0, w: 3, h: 1 },
-    { id: '1', x: 3, y: 0, w: 1, h: 1 },
-    { id: '2', x: 0, y: 1, w: 2, h: 1 },
-    { id: '3', x: 2, y: 1, w: 2, h: 1 }
+    { id: 'a7xP3q', x: 0, y: 0, w: 3, h: 1 },
+    { id: 'Bm9Lk2', x: 3, y: 0, w: 1, h: 1 },
+    { id: 'Zt5Ry8', x: 0, y: 1, w: 2, h: 1 },
+    { id: 'Hs6Uf4', x: 2, y: 1, w: 2, h: 1 }
   ],
   1: [
-    { id: '4', x: 0, y: 0, w: 4, h: 1 },
-    { id: '5', x: 0, y: 1, w: 4, h: 1 },
-    { id: '6', x: 0, y: 2, w: 4, h: 1 },
-    { id: '7', x: 0, y: 3, w: 4, h: 1 }
+    { id: 'Jn2Vw9', x: 0, y: 0, w: 4, h: 1 },
+    { id: 'Kp7Xm1', x: 0, y: 1, w: 4, h: 1 },
+    { id: 'Qd3Fg6', x: 0, y: 2, w: 4, h: 1 },
+    { id: 'Ey8Tc5', x: 0, y: 3, w: 4, h: 1 }
   ]
 };
 
 export default function App() {
-  const [state, dispatch] = useReducer(gridReducer, initialState);
+  const [data, dispatch] = useReducer(gridReducer, initialData);
   const [activeTab, setActiveTab] = useState<number>(0);
 
   const addItem = (tabId: number, item: LayoutItem) => {
@@ -60,27 +59,17 @@ export default function App() {
 
   return (
     <DndContext collisionDetection={closestLeftCorner}>
-      <TabContextProvider activeTab={activeTab} setActiveTab={setActiveTab}>
-        <GridContext layout={state[activeTab]} cols={4} colWidth={200} rowHeight={50} {...actions}>
+      <TabsContextProvider activeTab={activeTab} setActiveTab={setActiveTab}>
+        <GridContext data={data} layout={data[activeTab]} cols={4} colWidth={200} rowHeight={50} {...actions}>
           <div className="flex h-full w-full">
             <Sidebar />
             <div className="mt-24 flex w-full flex-col items-center space-y-1">
-              <div className="flex h-[50px] w-[800px] border-2 border-dashed border-zinc-300 font-bold">
-                {Object.keys(state).map((tabIndex) => (
-                  <button
-                    key={tabIndex}
-                    className="grid h-full w-[200px] place-items-center bg-zinc-100 hover:bg-zinc-200"
-                    onClick={() => setActiveTab(Number(tabIndex))}
-                  >
-                    aba {tabIndex}
-                  </button>
-                ))}
-              </div>
+              <Tabs />
               <Grid />
             </div>
           </div>
         </GridContext>
-      </TabContextProvider>
+      </TabsContextProvider>
     </DndContext>
   );
 }

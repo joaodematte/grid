@@ -1,22 +1,30 @@
 import { DragMoveEvent, DragOverlay, DragStartEvent, useDndMonitor } from '@dnd-kit/core';
 import { useLayoutEffect, useRef, useState } from 'react';
 
-import { useTabContext } from '../tabs/hooks/use-tab-context';
+import { useTabsContext } from '../tabs/hooks/useTabContext';
 import { GhostItem } from './ghost-item';
 import { GridItem, GridItemOverlay } from './grid-item';
 import { useGridContext } from './hooks';
 import { Layout, LayoutItem } from './types';
-import { getGhostItems, getInitialSidebarItemPosition, getRows, resolveCollisions, resolveItemPosition } from './utils';
+import {
+  createItemPosition,
+  generateId,
+  getGhostItems,
+  getRows,
+  resolveCollisions,
+  resolveItemPosition
+} from './utils';
 
 export const Grid = () => {
-  const { layout, cols, colWidth, rowHeight, getNextLayoutId, updateLayout } = useGridContext();
-  const { activeTab } = useTabContext();
+  const { layout, cols, colWidth, rowHeight, updateLayout, removeItem, addItem } = useGridContext();
+  const { activeTab, setActiveTab } = useTabsContext();
 
   const [activeItem, setActiveItem] = useState<LayoutItem | null>(null);
   const [lastCollisionId, setLastCollisionId] = useState<string | null>(null);
 
   const gridRef = useRef<HTMLDivElement>(null);
   const isLastMoveFromSidebar = useRef<boolean>(false);
+  const tempItemRef = useRef<LayoutItem>(null);
 
   const rows = getRows(layout);
 
@@ -24,14 +32,14 @@ export const Grid = () => {
 
   const generateLayoutItem = (id: string, w: number) => ({ id, w, h: 1 });
 
-  const updateLayoutTemp = (updatedLayout: Layout, event: DragMoveEvent) => {
+  const resolveCollisionsAndUpdateLayout = (updatedLayout: Layout, event: DragMoveEvent) => {
     const updatedLayoutWithoutCollisions = resolveCollisions([...updatedLayout], layout, event);
 
     updateLayout(activeTab, updatedLayoutWithoutCollisions);
   };
 
   const positionItem = (event: DragMoveEvent) => {
-    const { pos, collidingId } = resolveItemPosition(event, lastCollisionId);
+    const { pos, collidingId } = resolveItemPosition(activeItem, event, lastCollisionId);
 
     if (pos.x === -1 || pos.y === -1) return;
 
@@ -52,7 +60,7 @@ export const Grid = () => {
       return item;
     });
 
-    updateLayoutTemp(updatedLayout, event);
+    resolveCollisionsAndUpdateLayout(updatedLayout, event);
   };
 
   const handleOnDragStart = (event: DragStartEvent) => {
@@ -65,33 +73,65 @@ export const Grid = () => {
     setActiveItem(null);
 
     isLastMoveFromSidebar.current = false;
+    tempItemRef.current = null;
   };
 
-  const handleSidebarDrag = (event: DragMoveEvent) => {
-    const { shouldCreate, x, y } = getInitialSidebarItemPosition(event);
+  const handleShouldCreateItem = (event: DragMoveEvent) => {
+    const { shouldCreate, x, y } = createItemPosition(event);
     const width = event.active.data.current?.w;
 
-    const tempItem: LayoutItem = {
-      ...generateLayoutItem(getNextLayoutId(), width),
-      x,
-      y
-    };
+    if (!tempItemRef.current) {
+      const tempItem: LayoutItem = {
+        ...generateLayoutItem(generateId(), width),
+        x,
+        y
+      };
 
-    setActiveItem(tempItem);
+      setActiveItem(tempItem);
+      tempItemRef.current = tempItem;
+    }
+
     setLastCollisionId(null);
 
     if (shouldCreate) {
-      updateLayout(activeTab, [...layout, tempItem]);
+      updateLayout(activeTab, [...layout, tempItemRef.current]);
 
       isLastMoveFromSidebar.current = true;
     }
   };
 
+  const handleMoveBetweenTabs = (event: DragMoveEvent) => {
+    const tabTo = event.over?.data.current?.id as number | undefined;
+
+    if (tabTo === undefined || tabTo === activeTab) return;
+
+    const item = layout.find((i) => i.id === event.active.id.toString());
+
+    if (item) {
+      addItem(tabTo, { ...item, x: -1, y: -1 });
+      removeItem(activeTab, item.id);
+      setLastCollisionId(null);
+    }
+
+    setActiveTab(tabTo);
+  };
+
   const handleOnDragMove = (event: DragMoveEvent) => {
     const isFromSidebar = event.active.data.current?.from === 'sidebar';
+    const isTabMovement =
+      event.collisions &&
+      event.collisions[0] &&
+      event.collisions[0].id.toString().includes('tab') &&
+      event.collisions[0].data?.value <= 50;
+
+    if (isTabMovement) {
+      handleMoveBetweenTabs(event);
+
+      return;
+    }
 
     if (isFromSidebar && !isLastMoveFromSidebar.current) {
-      handleSidebarDrag(event);
+      handleShouldCreateItem(event);
 
       return;
     }
@@ -118,9 +158,7 @@ export const Grid = () => {
         <GhostItem key={`${ghostItem.id}-ghost`} {...ghostItem} />
       ))}
 
-      {layout.map((item) => (
-        <GridItem key={item.id} {...item} />
-      ))}
+      {layout.map((item) => item.x >= 0 && item.y >= 0 && <GridItem key={item.id} {...item} />)}
 
       <DragOverlay dropAnimation={{ duration: 0 }}>
         {activeItem ? <GridItemOverlay {...activeItem} /> : null}

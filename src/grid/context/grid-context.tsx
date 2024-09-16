@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-import { Layout, LayoutItem } from './types';
+import { GridData, Layout, LayoutItem } from '../types';
 
 interface GridContextProviderProps {
   children: React.ReactNode | React.ReactNode[];
@@ -8,6 +8,7 @@ interface GridContextProviderProps {
   colWidth: number;
   rowHeight: number;
   layout: Layout;
+  data: GridData;
   addItem: (tabId: number, item: LayoutItem) => void;
   removeItem: (tabId: number, itemId: string) => void;
   updateItem: (tabId: number, item: LayoutItem) => void;
@@ -21,6 +22,7 @@ interface GridContextProps {
   colWidth: number;
   rowHeight: number;
   layout: Layout;
+  data: GridData;
   getNextLayoutId: () => string;
   addItem: (tabId: number, item: LayoutItem) => void;
   removeItem: (tabId: number, itemId: string) => void;
@@ -32,7 +34,15 @@ interface GridContextProps {
 
 export const GridContextContext = createContext<GridContextProps | null>(null);
 
-export const GridContext = ({ children, layout, cols, colWidth, rowHeight, ...actions }: GridContextProviderProps) => {
+export const GridContext = ({
+  children,
+  data,
+  layout,
+  cols,
+  colWidth,
+  rowHeight,
+  ...actions
+}: GridContextProviderProps) => {
   const getNextLayoutId = () => {
     return (layout.reduce((max, item) => Math.max(max, parseInt(item.id, 10)), -1) + 1).toString();
   };
@@ -45,6 +55,7 @@ export const GridContext = ({ children, layout, cols, colWidth, rowHeight, ...ac
         colWidth,
         cols,
         getNextLayoutId,
+        data,
         ...actions
       }}
     >

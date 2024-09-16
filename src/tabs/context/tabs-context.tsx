@@ -11,8 +11,8 @@ interface TabProviderProps {
   children: React.ReactNode | React.ReactNode[];
 }
 
-export const TabContext = createContext<TabContextProps | null>(null);
+export const TabsContext = createContext<TabContextProps | null>(null);
 
-export function TabContextProvider({ children, activeTab, setActiveTab }: TabProviderProps) {
-  return <TabContext.Provider value={{ activeTab, setActiveTab }}>{children}</TabContext.Provider>;
+export function TabsContextProvider({ children, activeTab, setActiveTab }: TabProviderProps) {
+  return <TabsContext.Provider value={{ activeTab, setActiveTab }}>{children}</TabsContext.Provider>;
 }
