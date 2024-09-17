@@ -163,7 +163,7 @@ export const Grid = () => {
         {active && !active.id.toString().includes('tab') ? (
           <GridItemOverlay id={active.id.toString()} w={active.data.current?.w} h={active.data.current?.h} />
         ) : (
-          <TabOverlay>{active?.id}</TabOverlay>
+          <TabOverlay active={Number(active?.id.toString().split('-')[0]) === activeTab}>{active?.id}</TabOverlay>
         )}
       </DragOverlay>
     </div>
