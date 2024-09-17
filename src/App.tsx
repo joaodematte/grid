@@ -1,7 +1,7 @@
-import { DndContext } from '@dnd-kit/core';
+import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { useReducer, useState } from 'react';
 
-import { closestLeftCorner, Grid, GridContext, GridData, gridReducer, Layout, LayoutItem } from './grid';
+import { closestLeftCorner, Grid, GridContext, GridData, gridReducer, Layout, LayoutItem, Overlay } from './grid';
 import { Sidebar } from './sidebar';
 import { Tabs, TabsContextProvider } from './tabs';
 
@@ -69,6 +69,10 @@ export default function App() {
               <Grid />
             </div>
           </div>
+
+          <DragOverlay dropAnimation={{ duration: 0 }}>
+            <Overlay />
+          </DragOverlay>
         </GridContext>
       </TabsContextProvider>
     </DndContext>

@@ -1,10 +1,9 @@
-import { DragMoveEvent, DragOverlay, DragStartEvent, useDndContext, useDndMonitor } from '@dnd-kit/core';
+import { DragMoveEvent, DragStartEvent, UniqueIdentifier, useDndMonitor } from '@dnd-kit/core';
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { useTabsContext } from '../tabs/hooks/useTabContext';
-import { TabOverlay } from '../tabs/tab-button';
 import { GhostItem } from './ghost-item';
-import { GridItem, GridItemOverlay } from './grid-item';
+import { GridItem } from './grid-item';
 import { useGridContext } from './hooks';
 import { Layout, LayoutItem } from './types';
 import {
@@ -19,8 +18,6 @@ import {
 export const Grid = () => {
   const { layout, cols, colWidth, rowHeight, updateLayout, removeItem, addItem } = useGridContext();
   const { activeTab, setActiveTab } = useTabsContext();
-
-  const { active } = useDndContext();
 
   const [activeItem, setActiveItem] = useState<LayoutItem | null>(null);
   const [lastCollisionId, setLastCollisionId] = useState<string | null>(null);
@@ -97,7 +94,7 @@ export const Grid = () => {
     setLastCollisionId(null);
   };
 
-  const handleMoveBetweenTabs = (event: DragMoveEvent) => {
+  const handleMoveToTab = (event: DragMoveEvent) => {
     const tabTo = event.over?.data.current?.id as number | undefined;
 
     if (tabTo === undefined || tabTo === activeTab) return;
@@ -113,18 +110,20 @@ export const Grid = () => {
     setActiveTab(tabTo);
   };
 
+  const isTabDrag = (id: UniqueIdentifier) => id.toString().includes('tab');
+
   const handleOnDragMove = (event: DragMoveEvent) => {
-    if (event.active.id.toString().includes('tab')) return;
+    if (isTabDrag(event.active.id)) return;
 
     const isFromSidebar = event.active.data.current?.from === 'sidebar';
-    const isTabMovement =
+    const isToTabMovement =
       event.collisions &&
       event.collisions[0] &&
       event.collisions[0].id.toString().includes('tab') &&
       event.collisions[0].data?.value <= 50;
 
-    if (isTabMovement) {
-      handleMoveBetweenTabs(event);
+    if (isToTabMovement) {
+      handleMoveToTab(event);
 
       return;
     }
@@ -158,14 +157,6 @@ export const Grid = () => {
       ))}
 
       {layout.map((item) => item.x >= 0 && item.y >= 0 && <GridItem key={item.id} {...item} />)}
-
-      <DragOverlay dropAnimation={{ duration: 0 }}>
-        {active && !active.id.toString().includes('tab') ? (
-          <GridItemOverlay id={active.id.toString()} w={active.data.current?.w} h={active.data.current?.h} />
-        ) : (
-          <TabOverlay active={Number(active?.id.toString().split('-')[0]) === activeTab}>{active?.id}</TabOverlay>
-        )}
-      </DragOverlay>
     </div>
   );
 };
