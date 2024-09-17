@@ -54,7 +54,7 @@ export const GridItem = ({ id, x, y, w, h }: GridItemProps) => {
   );
 };
 
-export const GridItemOverlay = ({ id, w, h }: GridItemProps) => {
+export const GridItemOverlay = ({ id, w, h }: Omit<GridItemProps, 'x' | 'y'>) => {
   const { colWidth, rowHeight } = useGridContext();
 
   const style: CSSProperties = {

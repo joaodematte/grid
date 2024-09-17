@@ -10,7 +10,8 @@ export function SidebarButton({ w, children }: Props) {
     id: `${w}-sidebar`,
     data: {
       from: 'sidebar',
-      w
+      w,
+      h: 1
     }
   });
 

@@ -161,13 +161,7 @@ export const Grid = () => {
 
       <DragOverlay dropAnimation={{ duration: 0 }}>
         {active && !active.id.toString().includes('tab') ? (
-          <GridItemOverlay
-            id={active.id.toString()}
-            w={active.data.current?.w}
-            h={active.data.current?.h}
-            x={active.data.current?.x}
-            y={active.data.current?.y}
-          />
+          <GridItemOverlay id={active.id.toString()} w={active.data.current?.w} h={active.data.current?.h} />
         ) : (
           <TabOverlay>{active?.id}</TabOverlay>
         )}
