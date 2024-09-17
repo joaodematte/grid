@@ -1,5 +1,4 @@
-import { useDroppable } from '@dnd-kit/core';
-import clsx from 'clsx';
+import { useSortable } from '@dnd-kit/sortable';
 
 import { useTabsContext } from './hooks';
 
@@ -12,23 +11,50 @@ interface TabButtonProps {
 export function TabButton({ index, active, children }: TabButtonProps) {
   const { setActiveTab } = useTabsContext();
 
-  const { setNodeRef } = useDroppable({
-    id: `${index}-tab`,
+  const { transform, listeners, attributes, setNodeRef, setActivatorNodeRef } = useSortable({
+    id: index,
     data: {
       id: index
     }
   });
 
-  const classes = clsx({ 'border-4 border-red-500': active });
+  const style: React.CSSProperties = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0px)` : ''
+  };
 
   return (
-    <button
+    <div
       ref={setNodeRef}
-      key={index}
-      className={`grid h-full w-[200px] place-items-center bg-zinc-100 hover:bg-zinc-200 ${classes}`}
+      className="flex h-full w-[200px] items-center justify-between bg-zinc-100 px-8 hover:bg-zinc-200"
+      style={style}
       onClick={() => setActiveTab(index)}
+      {...attributes}
     >
-      {children}
-    </button>
+      <span>
+        {children} {active && <b className="text-red-500">*</b>}
+      </span>
+
+      <button ref={setActivatorNodeRef} className="p-2" {...listeners}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="cursor-grab"
+        >
+          <circle cx="9" cy="12" r="1" />
+          <circle cx="9" cy="5" r="1" />
+          <circle cx="9" cy="19" r="1" />
+          <circle cx="15" cy="12" r="1" />
+          <circle cx="15" cy="5" r="1" />
+          <circle cx="15" cy="19" r="1" />
+        </svg>
+      </button>
+    </div>
   );
 }

@@ -6,13 +6,13 @@ import { Sidebar } from './sidebar';
 import { Tabs, TabsContextProvider } from './tabs';
 
 const initialData: GridData = {
-  0: [
+  1: [
     { id: 'a7xP3q', x: 0, y: 0, w: 3, h: 1 },
     { id: 'Bm9Lk2', x: 3, y: 0, w: 1, h: 1 },
     { id: 'Zt5Ry8', x: 0, y: 1, w: 2, h: 1 },
     { id: 'Hs6Uf4', x: 2, y: 1, w: 2, h: 1 }
   ],
-  1: [
+  2: [
     { id: 'Jn2Vw9', x: 0, y: 0, w: 4, h: 1 },
     { id: 'Kp7Xm1', x: 0, y: 1, w: 4, h: 1 },
     { id: 'Qd3Fg6', x: 0, y: 2, w: 4, h: 1 },
@@ -22,7 +22,8 @@ const initialData: GridData = {
 
 export default function App() {
   const [data, dispatch] = useReducer(gridReducer, initialData);
-  const [activeTab, setActiveTab] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<number>(1);
+  const [tabs, setTabs] = useState<number[]>([1, 2]);
 
   const addItem = (tabId: number, item: LayoutItem) => {
     dispatch({ type: 'ADD_ITEM', payload: { tabId, item } });
@@ -59,7 +60,7 @@ export default function App() {
 
   return (
     <DndContext collisionDetection={closestLeftCorner}>
-      <TabsContextProvider activeTab={activeTab} setActiveTab={setActiveTab}>
+      <TabsContextProvider tabs={tabs} activeTab={activeTab} setTabs={setTabs} setActiveTab={setActiveTab}>
         <GridContext data={data} layout={data[activeTab]} cols={4} colWidth={200} rowHeight={50} {...actions}>
           <div className="flex h-full w-full">
             <Sidebar />
