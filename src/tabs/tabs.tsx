@@ -13,8 +13,8 @@ export function Tabs() {
 
       if (active.id !== over.id) {
         setTabs((prevTabs) => {
-          const oldIndex = tabs.indexOf(Number(active.id));
-          const newIndex = tabs.indexOf(Number(over.id));
+          const oldIndex = tabs.indexOf(Number(active.id.toString().split('-')[0]));
+          const newIndex = tabs.indexOf(Number(over.id.toString().split('-')[0]));
 
           return arrayMove(prevTabs, oldIndex, newIndex);
         });
@@ -25,9 +25,9 @@ export function Tabs() {
   return (
     <SortableContext items={tabs}>
       <div className="flex h-[50px] w-[800px] border-2 border-dashed border-zinc-300 font-bold">
-        {tabs.map((tab) => (
-          <TabButton key={tab} index={tab} active={tab === activeTab}>
-            aba {tab}
+        {tabs.map((index) => (
+          <TabButton key={`${index}-tab`} index={index} active={index === activeTab}>
+            {`${index}-tab`}
           </TabButton>
         ))}
       </div>

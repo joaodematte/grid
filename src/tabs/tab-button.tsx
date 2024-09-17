@@ -12,7 +12,7 @@ export function TabButton({ index, active, children }: TabButtonProps) {
   const { setActiveTab } = useTabsContext();
 
   const { transform, listeners, attributes, setNodeRef, setActivatorNodeRef } = useSortable({
-    id: index,
+    id: `${index}-tab`,
     data: {
       id: index
     }
@@ -55,6 +55,17 @@ export function TabButton({ index, active, children }: TabButtonProps) {
           <circle cx="15" cy="19" r="1" />
         </svg>
       </button>
+    </div>
+  );
+}
+
+export function TabOverlay({ children, ...props }: React.HTMLProps<HTMLDivElement>) {
+  return (
+    <div
+      className="flex h-full w-[200px] items-center justify-between bg-zinc-100 px-8 font-bold hover:bg-zinc-200"
+      {...props}
+    >
+      {children}
     </div>
   );
 }

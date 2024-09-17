@@ -2,6 +2,7 @@ import { DragMoveEvent, DragOverlay, DragStartEvent, useDndContext, useDndMonito
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { useTabsContext } from '../tabs/hooks/useTabContext';
+import { TabOverlay } from '../tabs/tab-button';
 import { GhostItem } from './ghost-item';
 import { GridItem, GridItemOverlay } from './grid-item';
 import { useGridContext } from './hooks';
@@ -113,13 +114,13 @@ export const Grid = () => {
   };
 
   const handleOnDragMove = (event: DragMoveEvent) => {
-    if (typeof event.active.id === 'number') return;
+    if (event.active.id.toString().includes('tab')) return;
 
     const isFromSidebar = event.active.data.current?.from === 'sidebar';
     const isTabMovement =
       event.collisions &&
       event.collisions[0] &&
-      !event.collisions[0].id.toString().includes('-') &&
+      event.collisions[0].id.toString().includes('tab') &&
       event.collisions[0].data?.value <= 50;
 
     if (isTabMovement) {
@@ -150,8 +151,6 @@ export const Grid = () => {
     onDragMove: handleOnDragMove
   });
 
-  console.log(active);
-
   return (
     <div ref={gridRef} className="relative">
       {ghostItems.map((ghostItem) => (
@@ -161,18 +160,16 @@ export const Grid = () => {
       {layout.map((item) => item.x >= 0 && item.y >= 0 && <GridItem key={item.id} {...item} />)}
 
       <DragOverlay dropAnimation={{ duration: 0 }}>
-        {active && typeof active.id !== 'number' ? (
+        {active && !active.id.toString().includes('tab') ? (
           <GridItemOverlay
-            id={active.id}
+            id={active.id.toString()}
             w={active.data.current?.w}
             h={active.data.current?.h}
             x={active.data.current?.x}
             y={active.data.current?.y}
           />
         ) : (
-          <div className="flex h-full w-[200px] items-center justify-between bg-zinc-100 px-8 font-bold hover:bg-zinc-200">
-            aba {active?.id}
-          </div>
+          <TabOverlay>{active?.id}</TabOverlay>
         )}
       </DragOverlay>
     </div>
