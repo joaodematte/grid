@@ -12,10 +12,11 @@ export function Overlay() {
   if (!active || !active.data.current) return null;
 
   const stringId = active.id.toString();
+  const { w, h } = active.data.current;
 
   const style: React.CSSProperties = {
-    width: colWidth * active.data.current.w,
-    height: rowHeight * active.data.current.h
+    width: colWidth * w,
+    height: rowHeight * h
   };
 
   if (stringId.includes('tab')) {

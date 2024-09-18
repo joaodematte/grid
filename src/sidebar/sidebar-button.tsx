@@ -1,17 +1,20 @@
 import { useDraggable } from '@dnd-kit/core';
 
-interface Props {
-  w: number;
-  children: React.ReactNode | React.ReactNode[];
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  id: string;
+  kind: 'field' | 'tab';
+  data?: {
+    w?: number;
+    h?: number;
+  };
 }
 
-export function SidebarButton({ w, children }: Props) {
+export function SidebarButton({ id, data, children }: Props) {
   const { transform, listeners, attributes, setNodeRef } = useDraggable({
-    id: `${w}-sidebar`,
+    id: `${id}-sidebar`,
     data: {
-      from: 'sidebar',
-      w,
-      h: 1
+      ...data,
+      from: 'sidebar'
     }
   });
 

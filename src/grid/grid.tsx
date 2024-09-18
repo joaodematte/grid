@@ -129,6 +129,7 @@ export const Grid = () => {
     }
 
     if (isFromSidebar && !isLastMoveFromSidebar.current) {
+      console.log('asd');
       handleShouldCreateItem(event);
 
       return;

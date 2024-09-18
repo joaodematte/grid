@@ -11,7 +11,7 @@ export function Tabs() {
     onDragEnd: ({ over, active }) => {
       if (!over) return;
 
-      if (active.id !== over.id) {
+      if (active.id.toString().includes('tab') && active.id !== over.id) {
         setTabs((prevTabs) => {
           const oldIndex = tabs.indexOf(Number(active.id.toString().split('-')[0]));
           const newIndex = tabs.indexOf(Number(over.id.toString().split('-')[0]));
