@@ -15,7 +15,7 @@ export function Sidebar() {
       <SidebarButton id="4" kind="field" data={{ w: 4, h: 1 }}>
         w-4
       </SidebarButton>
-      <SidebarButton id="newtab" kind="field">
+      <SidebarButton id="newtab" kind="field" data={{ w: 1, h: 1, isNewTab: true }}>
         nova aba
       </SidebarButton>
     </div>

@@ -6,6 +6,8 @@ export const isFromTab = (active: Active) => active.data?.current?.from === 'tab
 
 export const isFromGrid = (active: Active) => active.data?.current?.from === 'grid';
 
+export const isNewTab = (active: Active) => Boolean(active.data?.current?.isNewTab);
+
 export const isCollidingWithTab = (event: DragMoveEvent) => {
   if (!event.collisions || !event.collisions[0].data) return false;
 

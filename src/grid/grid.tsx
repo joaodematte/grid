@@ -2,7 +2,7 @@ import { DragMoveEvent, DragStartEvent, useDndMonitor } from '@dnd-kit/core';
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { useTabsContext } from '../tabs/hooks/useTabContext';
-import { isCollidingWithTab, isFromTab } from '../validators';
+import { isCollidingWithTab, isFromSidebar, isFromTab, isNewTab } from '../validators';
 import { GhostItem } from './ghost-item';
 import { GridItem } from './grid-item';
 import { useGridContext } from './hooks';
@@ -114,9 +114,12 @@ export const Grid = () => {
   const handleOnDragMove = (event: DragMoveEvent) => {
     if (isFromTab(event.active)) return;
 
-    const isFromSidebar = event.active.data.current?.from === 'sidebar';
     const isToTabMovement =
       event.collisions && event.collisions[0] && isCollidingWithTab(event) && event.collisions[0].data?.value <= 50;
+    const fromSidebar = isFromSidebar(event.active);
+    const newTab = isNewTab(event.active);
+
+    if (fromSidebar && newTab) return;
 
     if (isToTabMovement) {
       handleMoveToTab(event);
@@ -124,8 +127,7 @@ export const Grid = () => {
       return;
     }
 
-    if (isFromSidebar && !isLastMoveFromSidebar.current) {
-      console.log('asd');
+    if (fromSidebar && !isLastMoveFromSidebar.current) {
       handleShouldCreateItem(event);
 
       return;

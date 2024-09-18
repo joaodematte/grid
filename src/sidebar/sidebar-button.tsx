@@ -6,6 +6,7 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   data?: {
     w?: number;
     h?: number;
+    isNewTab?: boolean;
   };
 }
 

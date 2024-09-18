@@ -1,23 +1,33 @@
 import { useDndMonitor } from '@dnd-kit/core';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 
-import { isFromTab } from '../validators';
+import { useGridContext } from '../grid';
+import { isFromSidebar, isFromTab, isNewTab } from '../validators';
 import { useTabsContext } from './hooks';
 import { TabButton } from './tab-button';
 
 export function Tabs() {
+  const { data, addTab } = useGridContext();
   const { tabs, activeTab, setTabs } = useTabsContext();
 
   useDndMonitor({
     onDragEnd: ({ over, active }) => {
       if (!over) return;
 
-      if (isFromTab(active) && active.id !== over.id) {
+      if ((isFromTab(active) || (isFromSidebar(active) && isNewTab(active))) && active.id !== over.id) {
         setTabs((prevTabs) => {
+          let arr = prevTabs;
+
           const oldIndex = tabs.indexOf(Number(active.data.current?.id));
           const newIndex = tabs.indexOf(Number(over.data.current?.id));
 
-          return arrayMove(prevTabs, oldIndex, newIndex);
+          if (oldIndex === -1) arr = [...prevTabs, prevTabs.length + 1];
+
+          if (Object.keys(data).length !== arr.length) {
+            addTab(prevTabs.length + 1);
+          }
+
+          return arrayMove(arr, oldIndex, newIndex);
         });
       }
     }
