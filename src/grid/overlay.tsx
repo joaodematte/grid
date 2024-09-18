@@ -2,6 +2,7 @@ import { useDndContext } from '@dnd-kit/core';
 import clsx from 'clsx';
 
 import { useTabsContext } from '../tabs';
+import { isFromTab } from '../validators';
 import { useGridContext } from './hooks';
 
 export function Overlay() {
@@ -19,7 +20,7 @@ export function Overlay() {
     height: rowHeight * h
   };
 
-  if (stringId.includes('tab')) {
+  if (isFromTab(active)) {
     return (
       <div
         className={`flex h-full w-[200px] items-center justify-between bg-zinc-100 px-8 font-bold hover:bg-zinc-200 ${clsx({ 'border-b-4 border-blue-800': activeTab === Number(stringId.split('-')[0]) })}`}

@@ -16,8 +16,7 @@ export function TabButton({ index, active, children }: TabButtonProps) {
     id: `${index}-tab`,
     data: {
       id: index,
-      w: 1,
-      h: 1
+      from: 'tab'
     }
   });
 

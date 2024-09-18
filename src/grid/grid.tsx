@@ -1,7 +1,8 @@
-import { DragMoveEvent, DragStartEvent, UniqueIdentifier, useDndMonitor } from '@dnd-kit/core';
+import { DragMoveEvent, DragStartEvent, useDndMonitor } from '@dnd-kit/core';
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { useTabsContext } from '../tabs/hooks/useTabContext';
+import { isCollidingWithTab, isFromTab } from '../validators';
 import { GhostItem } from './ghost-item';
 import { GridItem } from './grid-item';
 import { useGridContext } from './hooks';
@@ -110,17 +111,12 @@ export const Grid = () => {
     setActiveTab(tabTo);
   };
 
-  const isTabDrag = (id: UniqueIdentifier) => id.toString().includes('tab');
-
   const handleOnDragMove = (event: DragMoveEvent) => {
-    if (isTabDrag(event.active.id)) return;
+    if (isFromTab(event.active)) return;
 
     const isFromSidebar = event.active.data.current?.from === 'sidebar';
     const isToTabMovement =
-      event.collisions &&
-      event.collisions[0] &&
-      event.collisions[0].id.toString().includes('tab') &&
-      event.collisions[0].data?.value <= 50;
+      event.collisions && event.collisions[0] && isCollidingWithTab(event) && event.collisions[0].data?.value <= 50;
 
     if (isToTabMovement) {
       handleMoveToTab(event);

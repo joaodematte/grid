@@ -1,6 +1,7 @@
 import { useDndMonitor } from '@dnd-kit/core';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 
+import { isFromTab } from '../validators';
 import { useTabsContext } from './hooks';
 import { TabButton } from './tab-button';
 
@@ -11,10 +12,10 @@ export function Tabs() {
     onDragEnd: ({ over, active }) => {
       if (!over) return;
 
-      if (active.id.toString().includes('tab') && active.id !== over.id) {
+      if (isFromTab(active) && active.id !== over.id) {
         setTabs((prevTabs) => {
-          const oldIndex = tabs.indexOf(Number(active.id.toString().split('-')[0]));
-          const newIndex = tabs.indexOf(Number(over.id.toString().split('-')[0]));
+          const oldIndex = tabs.indexOf(Number(active.data.current?.id));
+          const newIndex = tabs.indexOf(Number(over.data.current?.id));
 
           return arrayMove(prevTabs, oldIndex, newIndex);
         });

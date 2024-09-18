@@ -23,7 +23,8 @@ export const GridItem = ({ id, x, y, w, h }: GridItemProps) => {
       w,
       h,
       x,
-      y
+      y,
+      from: 'grid'
     }
   });
 
