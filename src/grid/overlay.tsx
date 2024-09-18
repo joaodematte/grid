@@ -53,10 +53,33 @@ export function Overlay() {
 
   return (
     <div
-      className="border-1 grid cursor-grabbing select-none place-items-center border bg-zinc-100 font-bold"
+      className="flex h-full w-full cursor-grab select-none items-center border-2 border-zinc-300 bg-zinc-100 px-4 font-bold"
       style={style}
     >
-      {stringId}
+      <div className="flex items-center gap-4">
+        <button className="p-2 text-zinc-400">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="cursor-grab"
+          >
+            <circle cx="9" cy="12" r="1" />
+            <circle cx="9" cy="5" r="1" />
+            <circle cx="9" cy="19" r="1" />
+            <circle cx="15" cy="12" r="1" />
+            <circle cx="15" cy="5" r="1" />
+            <circle cx="15" cy="19" r="1" />
+          </svg>
+        </button>
+        {stringId}
+      </div>
     </div>
   );
 }

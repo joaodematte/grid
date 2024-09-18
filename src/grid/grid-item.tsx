@@ -13,11 +13,7 @@ export const GridItem = ({ id, x, y, w, h }: GridItemProps) => {
   const posX = colWidth * x;
   const posY = rowHeight * y;
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef: draggableRef
-  } = useDraggable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef } = useDraggable({
     id,
     data: {
       w,
@@ -43,32 +39,32 @@ export const GridItem = ({ id, x, y, w, h }: GridItemProps) => {
 
   return (
     <div id={id} style={style} className={`${classes} absolute font-bold`}>
-      <div
-        ref={draggableRef}
-        className="grid h-full w-full cursor-grab select-none place-items-center"
-        {...attributes}
-        {...listeners}
-      >
-        {id}
+      <div ref={setNodeRef} className="flex h-full w-full cursor-grab select-none items-center px-4" {...attributes}>
+        <div className="flex items-center gap-4">
+          <button ref={setActivatorNodeRef} className="p-2 text-zinc-400" {...listeners}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="cursor-grab"
+            >
+              <circle cx="9" cy="12" r="1" />
+              <circle cx="9" cy="5" r="1" />
+              <circle cx="9" cy="19" r="1" />
+              <circle cx="15" cy="12" r="1" />
+              <circle cx="15" cy="5" r="1" />
+              <circle cx="15" cy="19" r="1" />
+            </svg>
+          </button>
+          {id}
+        </div>
       </div>
-    </div>
-  );
-};
-
-export const GridItemOverlay = ({ id, w, h }: Omit<GridItemProps, 'x' | 'y'>) => {
-  const { colWidth, rowHeight } = useGridContext();
-
-  const style: CSSProperties = {
-    width: colWidth * w,
-    height: rowHeight * h
-  };
-
-  return (
-    <div
-      className="border-1 grid cursor-grabbing select-none place-items-center border bg-zinc-100 font-bold"
-      style={style}
-    >
-      {id}
     </div>
   );
 };

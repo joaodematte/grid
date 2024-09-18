@@ -34,7 +34,7 @@ export function TabButton({ index, active, children }: TabButtonProps) {
     >
       <span>{children}</span>
 
-      <button ref={setActivatorNodeRef} className="p-2" {...listeners}>
+      <button ref={setActivatorNodeRef} className="p-2 text-zinc-400" {...listeners}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="18"
