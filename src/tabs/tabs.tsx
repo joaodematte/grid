@@ -1,4 +1,4 @@
-import { useDndMonitor } from '@dnd-kit/core';
+import { useDndMonitor, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 
 import { useGridContext } from '../grid';
@@ -9,6 +9,13 @@ import { TabButton } from './tab-button';
 export function Tabs() {
   const { data, addTab } = useGridContext();
   const { tabs, activeTab, setTabs } = useTabsContext();
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'tabs_container',
+    data: {
+      from: 'tab'
+    }
+  });
 
   useDndMonitor({
     onDragEnd: ({ over, active }) => {
@@ -35,7 +42,10 @@ export function Tabs() {
 
   return (
     <SortableContext items={tabs}>
-      <div className="flex h-[50px] w-[800px] border-2 border-dashed border-zinc-300 font-bold">
+      <div
+        ref={setNodeRef}
+        className={`flex h-[50px] w-[800px] border-2 border-dashed border-zinc-300 font-bold ${isOver ? 'bg-red-500' : 'bg-transparent'}`}
+      >
         {tabs.map((index) => (
           <TabButton key={`${index}-tab`} index={index} active={index === activeTab}>
             {`${index}-tab`}

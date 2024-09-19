@@ -112,6 +112,8 @@ export const Grid = () => {
   };
 
   const handleOnDragMove = (event: DragMoveEvent) => {
+    console.log(event);
+
     if (isFromTab(event.active)) return;
 
     const isToTabMovement =

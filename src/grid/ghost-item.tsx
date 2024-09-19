@@ -35,7 +35,9 @@ export const GhostItem = ({ id, x, y }: GhostItemProps) => {
         className="flex h-full w-full items-center justify-center outline-dashed outline-1 outline-zinc-300"
         data-x={x}
         data-y={y}
-      />
+      >
+        {ghostId}
+      </div>
     </div>
   );
 };
